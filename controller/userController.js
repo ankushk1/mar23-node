@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const salt = 10;
+const jwt = require("jsonwebtoken");
 
 exports.signUp = async (req, res) => {
   try {
@@ -42,13 +43,19 @@ exports.login = async (req, res) => {
       req.body.password,
       existingUser.password
     );
-    
-    console.log('passwordMatched ---->', passwordMatched)
+
+    // console.log('passwordMatched ---->', passwordMatched)
     if (!passwordMatched) {
       return res.status(400).json({ message: "Invalid Password" });
     }
 
-    return res.status(200).json({ message: "Login Success" });
+    const { _id, firstname, email } = existingUser;
+    // Generate the JWT token
+    const token = jwt.sign({ _id, firstname, email }, "secretApiKey", {
+      expiresIn: '2h'
+    });
+
+    return res.status(200).json({ message: "Login Success", token });
   } catch (err) {
     return res.status(500).json({ err: err.message });
   }
